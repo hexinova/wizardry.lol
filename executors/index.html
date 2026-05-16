@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Executors | Wizardry</title>
+    <link rel="stylesheet" href="fonts/ibm-plex-mono/css/ibm-plex-mono-default.css">
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "IBM Plex Mono", monospace;
+        --bg: #171818;
+        --panel: #1d1f1f;
+        --panel-hover: #232626;
+        --line: #333737;
+        --text: #f4f4f1;
+        --muted: #a7a7a7;
+        --pill: #343838;
+        --green: #24cf68;
+        --red: #ff4248;
+        --blue: #2e68ed;
+        --purple: #3a3346;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 20px));
+        margin: 0 auto;
+        padding: 18px 0 34px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #282b2b;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        min-width: 0;
+      }
+
+      .brand img {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+      }
+
+      .brand strong {
+        display: block;
+        font-size: 1rem;
+      }
+
+      .brand span,
+      .status-line,
+      .fine {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .top-actions,
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toolbar {
+        justify-content: flex-end;
+      }
+
+      .search-wrap {
+        position: relative;
+      }
+
+      .search-wrap svg {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+
+      .search {
+        width: min(100%, 250px);
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #1a1c1c;
+        color: var(--text);
+        outline: none;
+        padding: 0 14px 0 38px;
+      }
+
+      .search:focus {
+        border-color: #6a6f6f;
+      }
+
+      .icon-button,
+      .filter-button,
+      .link-action {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #1a1c1c;
+        color: var(--text);
+      }
+
+      .icon-button {
+        width: 38px;
+        min-height: 38px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+
+      .filter-button {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+      }
+
+      main {
+        display: grid;
+        gap: 28px;
+        padding-top: 22px;
+      }
+
+      .section {
+        display: grid;
+        gap: 14px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(1.35rem, 3vw, 1.9rem);
+      }
+
+      h2 {
+        font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+      }
+
+      .list {
+        display: grid;
+        gap: 15px;
+      }
+
+      .executor-row {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        overflow: hidden;
+      }
+
+      .executor-row::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 9px;
+        background: var(--green);
+      }
+
+      .executor-row.not-updated::before {
+        background: var(--red);
+      }
+
+      .executor-summary {
+        min-height: 100px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: start;
+        gap: 18px;
+        padding: 18px 16px 18px 24px;
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .executor-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .executor-summary:hover,
+      .executor-row[open] .executor-summary {
+        background: var(--panel-hover);
+      }
+
+      .executor-main {
+        min-width: 0;
+      }
+
+      .title-line {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .dots {
+        color: var(--muted);
+        flex: 0 0 auto;
+      }
+
+      .name {
+        font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .updated-text {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.96rem;
+        line-height: 1.5;
+      }
+
+      .pill {
+        min-height: 25px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: var(--pill);
+        color: #c9c9c9;
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 0 8px;
+        white-space: nowrap;
+      }
+
+      .pill.sunc {
+        background: var(--purple);
+        color: #d7c8ff;
+      }
+
+      .pill.price {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .state {
+        min-width: 112px;
+        border-radius: 999px;
+        background: var(--green);
+        color: #fff;
+        font-weight: 600;
+        text-align: center;
+        padding: 9px 12px;
+        white-space: nowrap;
+      }
+
+      .state.not-updated {
+        background: var(--red);
+      }
+
+      .executor-panel {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 16px 16px 24px;
+      }
+
+      .link-action {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        text-decoration: none;
+        padding: 0 12px;
+        text-align: center;
+      }
+
+      .link-action:hover {
+        background: #252929;
+        border-color: #555b5b;
+      }
+
+      .link-action.muted {
+        color: var(--muted);
+        pointer-events: none;
+      }
+
+      .empty {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        padding: 26px;
+        text-align: center;
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 30px;
+        padding-top: 16px;
+        border-top: 1px solid #282b2b;
+      }
+
+      svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      @media (max-width: 720px) {
+        header,
+        .section-head,
+        footer {
+          display: grid;
+          align-items: stretch;
+        }
+
+        .toolbar {
+          justify-content: stretch;
+        }
+
+        .search-wrap,
+        .search {
+          width: 100%;
+        }
+
+        .executor-summary {
+          grid-template-columns: 1fr;
+        }
+
+        .state {
+          width: max-content;
+        }
+
+        .executor-panel {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a class="brand" href="/" aria-label="Wizardry home">
+          <img src="assets/wizardry.lol.png" alt="">
+          <span>
+            <strong>Wizardry Executors</strong>
+            <span>executors.wizardry.lol</span>
+          </span>
+        </a>
+        <div class="top-actions">
+          <a class="filter-button" href="https://docs.weao.xyz/" rel="noreferrer" target="_blank">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></svg>
+            Docs
+          </a>
+          <button class="icon-button" id="refresh" type="button" title="Refresh" aria-label="Refresh">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h4"></path><path d="M6 22v-4H2"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="sections">
+        <section class="section">
+          <div class="section-head">
+            <h1>Windows Script Executor Exploits</h1>
+            <div class="toolbar">
+              <label class="search-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3"></path><circle cx="11" cy="11" r="8"></circle></svg>
+                <input class="search" id="search" type="search" autocomplete="off" placeholder="Search exploits...">
+              </label>
+              <button class="filter-button" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7"></path><path d="M4 10V3"></path><path d="M12 21v-9"></path><path d="M12 8V3"></path><path d="M20 21v-5"></path><path d="M20 12V3"></path><path d="M2 14h4"></path><path d="M10 8h4"></path><path d="M18 16h4"></path></svg>
+                Filters
+              </button>
+            </div>
+          </div>
+          <div class="status-line" id="status">Loading WEAO status...</div>
+          <div class="list" id="initial-list"></div>
+        </section>
+      </main>
+
+      <footer>
+        <span class="fine">Data source: WEAO API</span>
+        <span class="fine" id="updated">Last updated: pending</span>
+      </footer>
+    </div>
+
+    <script>
+      const API_URL = "https://weao.xyz/api/status/exploits";
+      const PURCHASE_URL = "https://bloxproducts.com/?affiliate_key=n";
+      const FALLBACK_EXECUTORS = [
+        { title: "Volt", platform: "Windows", extype: "wexecutor", updateStatus: true, version: "1.2.17.6", updatedDate: "05/16/2026 at 9:42 PM UTC", cost: "$5.99 Weekly", websitelink: "https://voltbz.net/", discordlink: "https://discord.com/invite/voltbz", purchaselink: "https://bloxproducts.com/?affiliate_key=weao#Volt", suncPercentage: 98, index: 1 },
+        { title: "Potassium", platform: "Windows", extype: "wexecutor", updateStatus: true, version: "2.1.6", updatedDate: "05/14/2026 at 4:14 PM UTC", cost: "$22.99 Lifetime", websitelink: "https://www.potassium.pro/", discordlink: "https://discord.com/invite/potassium", purchaselink: "https://bloxproducts.com/?affiliate_key=weao#Potassium", suncPercentage: 100, index: 2 },
+        { title: "Wave", platform: "Windows", extype: "wexecutor", updateStatus: true, version: "NEW-1.2.7", updatedDate: "05/15/2026 at 1:08 AM UTC", cost: "$5.99 Weekly", websitelink: "https://getwave.gg", discordlink: "https://discord.gg/getwave", purchaselink: "https://bloxproducts.com/?affiliate_key=weao#Wave", suncPercentage: 100, index: 3 },
+        { title: "Synapse Z", platform: "Windows", extype: "wexecutor", updateStatus: true, version: "1.0.2.1", updatedDate: "05/13/2026 at 8:29 PM UTC", cost: "$3.99 Weekly", websitelink: "https://z.synapse.do", discordlink: "https://discord.gg/synz", purchaselink: "https://robloxcheatz.com/product?id=synapsez&ref=weao", suncPercentage: 98, index: 4 },
+        { title: "Seliware", platform: "Windows", extype: "wexecutor", updateStatus: false, version: "2.4.7", updatedDate: "05/04/2026 at 12:17 PM UTC", cost: "$3.99 Weekly", websitelink: "https://seliware.com", discordlink: "https://discord.com/invite/nzEggEE9vx", purchaselink: "https://robloxcheatz.com/product?id=51c9587f-4794-46ef-b6bf-2bd9f13c17d2&ref=weao", suncPercentage: 100, index: 5 },
+        { title: "MacSploit", platform: "MacOS", extype: "mexecutor", updateStatus: true, version: "latest", updatedDate: "checking", cost: "Paid", websitelink: "https://www.raptor.fun/", discordlink: "https://discord.gg/macsploit", purchaselink: "https://bloxproducts.com/?affiliate_key=weao#MacSploit", suncPercentage: 88, index: 20 },
+        { title: "Delta", platform: "Android", extype: "mexecutor", updateStatus: true, version: "latest", updatedDate: "checking", cost: "Free", websitelink: "https://deltaexploits.gg", discordlink: "https://discord.gg/deltaex", purchaselink: "https://bloxproducts.com/?affiliate_key=weao#Delta", suncPercentage: 82, index: 30 }
+      ];
+
+      const state = {
+        items: [],
+        query: "",
+        fallback: false
+      };
+
+      const sections = document.querySelector("#sections");
+      const statusLine = document.querySelector("#status");
+      const updated = document.querySelector("#updated");
+      const search = document.querySelector("#search");
+      const refresh = document.querySelector("#refresh");
+
+      const platformLabels = {
+        windows: "Windows",
+        macos: "MacOS",
+        android: "Android",
+        ios: "iOS"
+      };
+      const platformRank = {
+        windows: 0,
+        macos: 1,
+        android: 2,
+        ios: 3
+      };
+      const categoryRank = {
+        executor: 0,
+        external: 1
+      };
+      const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+      function normalizePlatform(value) {
+        const platform = String(value || "").toLowerCase();
+        if (platform.includes("win")) return "windows";
+        if (platform.includes("mac")) return "macos";
+        if (platform.includes("android")) return "android";
+        if (platform.includes("ios")) return "ios";
+        return "other";
+      }
+
+      function normalizeCategory(value) {
+        const type = String(value || "").toLowerCase();
+        return type.includes("external") ? "external" : "executor";
+      }
+
+      function parseUpdatedDate(value) {
+        const cleaned = String(value || "")
+          .replace(/\bat\b/i, "")
+          .replace(/\s+UTC$/i, " UTC")
+          .trim();
+        const timestamp = Date.parse(cleaned);
+        return Number.isNaN(timestamp) ? null : timestamp;
+      }
+
+      function normalizeItem(item) {
+        const data = item.properties ? { ...item, ...item.properties } : item;
+        const name = data.title || data.name || "Unknown";
+        const updatedStatus = data.updateStatus === true || data.updated === true;
+        const notUpdated = data.updateStatus === false || data.updated === false;
+        const updatedAt = parseUpdatedDate(data.updatedDate || data.lastUpdated);
+
+        return {
+          name,
+          platform: normalizePlatform(data.platform || data.os || data.device),
+          category: normalizeCategory(data.extype || data.type),
+          updateStatus: updatedStatus,
+          hasKnownStatus: updatedStatus || notUpdated,
+          updatedAt,
+          version: data.version || data.rbxversion || data.robloxVersion || "unknown",
+          updatedDate: data.updatedDate || data.lastUpdated || "unknown",
+          cost: data.cost || data.payment || data.price || (data.free ? "Free" : "Unknown"),
+          website: data.websitelink || data.website || "",
+          discord: data.discordlink || data.discord || "",
+          index: Number.isFinite(Number(data.index)) ? Number(data.index) : 999,
+          sunc: data.suncPercentage || data.suncPercentage === 0 ? `${Number(data.suncPercentage)}%` : ""
+        };
+      }
+
+      function normalizePayload(payload) {
+        const list = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.exploits)
+            ? payload.exploits
+            : Array.isArray(payload.data)
+              ? payload.data
+              : [];
+
+        const cutoff = Date.now() - ONE_MONTH_MS;
+
+        return list
+          .map(normalizeItem)
+          .filter((item) => item.name !== "Unknown" && item.hasKnownStatus && item.platform !== "other" && (item.updatedAt === null ? item.updateStatus : item.updatedAt >= cutoff))
+          .sort((a, b) =>
+            categoryRank[a.category] - categoryRank[b.category] ||
+            platformRank[a.platform] - platformRank[b.platform] ||
+            Number(b.updateStatus) - Number(a.updateStatus) ||
+            a.index - b.index ||
+            a.name.localeCompare(b.name)
+          );
+      }
+
+      async function loadExecutors() {
+        statusLine.textContent = "Loading WEAO status...";
+        try {
+          const response = await fetch(API_URL, { cache: "no-store" });
+          if (!response.ok) throw new Error(`WEAO returned ${response.status}`);
+
+          const payload = await response.json();
+          const items = normalizePayload(payload);
+          if (!items.length) throw new Error("WEAO returned an empty executor list");
+
+          state.items = items;
+          state.fallback = false;
+          statusLine.textContent = "Live WEAO status loaded.";
+        } catch (error) {
+          state.items = normalizePayload(FALLBACK_EXECUTORS);
+          state.fallback = true;
+          statusLine.textContent = "Static preview loaded. WEAO requires a service user agent for server-side live sync.";
+        }
+
+        updated.textContent = `Last updated: ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`;
+        render();
+      }
+
+      function filteredItems() {
+        return state.items.filter((item) => item.name.toLowerCase().includes(state.query));
+      }
+
+      function sectionTitle(category, platform) {
+        const kind = category === "external" ? "External" : "Script Executor";
+        return `${platformLabels[platform] || platform} ${kind} Exploits`;
+      }
+
+      function groupItems(items) {
+        const groups = new Map();
+        for (const item of items) {
+          const key = `${item.category}:${item.platform}`;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(item);
+        }
+        return [...groups.entries()].sort(([aKey], [bKey]) => {
+          const [aCategory, aPlatform] = aKey.split(":");
+          const [bCategory, bPlatform] = bKey.split(":");
+          return categoryRank[aCategory] - categoryRank[bCategory] || platformRank[aPlatform] - platformRank[bPlatform];
+        });
+      }
+
+      function badge(value, className = "") {
+        if (!value || value === "Unknown") return "";
+        return `<span class="pill ${className}">${escapeHtml(value)}</span>`;
+      }
+
+      function linkAction(href, label) {
+        if (!href) return `<span class="link-action muted">${label} soon</span>`;
+        const url = href;
+        return `<a class="link-action" href="${escapeAttribute(url)}" rel="noreferrer" target="_blank">${label}</a>`;
+      }
+
+      function itemTemplate(item) {
+        const statusText = item.updateStatus ? "Updated" : "Not Updated";
+        const stateClass = item.updateStatus ? "" : "not-updated";
+
+        return `
+          <details class="executor-row ${stateClass}">
+            <summary class="executor-summary">
+              <div class="executor-main">
+                <div class="title-line">
+                  <svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                  <span class="name">${escapeHtml(item.name)}</span>
+                  ${badge(item.version)}
+                  ${item.sunc ? badge("sUNC", "sunc") : ""}
+                  ${badge(item.cost, "price")}
+                </div>
+                <div class="updated-text">Last updated: ${escapeHtml(item.updatedDate)}</div>
+              </div>
+              <span class="state ${stateClass}">${statusText}</span>
+            </summary>
+            <div class="executor-panel">
+              ${linkAction(PURCHASE_URL, "Purchase")}
+              ${linkAction(item.website, "Website")}
+              ${linkAction(item.discord, "Discord")}
+            </div>
+          </details>
+        `;
+      }
+
+      function render() {
+        const items = filteredItems();
+        const grouped = groupItems(items);
+        const firstGroup = grouped.shift();
+
+        if (!firstGroup) {
+          sections.innerHTML = `
+            <section class="section">
+              <div class="section-head">
+                <h1>Windows Script Executor Exploits</h1>
+                <div class="toolbar">
+                  <label class="search-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3"></path><circle cx="11" cy="11" r="8"></circle></svg>
+                    <input class="search" id="search" type="search" autocomplete="off" placeholder="Search exploits..." value="${escapeAttribute(state.query)}">
+                  </label>
+                </div>
+              </div>
+              <div class="empty">No exploits match this search.</div>
+            </section>
+          `;
+          document.querySelector("#search").addEventListener("input", handleSearch);
+          return;
+        }
+
+        const [firstKey, firstItems] = firstGroup;
+        const [firstCategory, firstPlatform] = firstKey.split(":");
+        const searchValue = escapeAttribute(state.query);
+        sections.innerHTML = `
+          <section class="section">
+            <div class="section-head">
+              <h1>${escapeHtml(sectionTitle(firstCategory, firstPlatform))}</h1>
+              <div class="toolbar">
+                <label class="search-wrap">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3"></path><circle cx="11" cy="11" r="8"></circle></svg>
+                  <input class="search" id="search" type="search" autocomplete="off" placeholder="Search exploits..." value="${searchValue}">
+                </label>
+                <button class="filter-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7"></path><path d="M4 10V3"></path><path d="M12 21v-9"></path><path d="M12 8V3"></path><path d="M20 21v-5"></path><path d="M20 12V3"></path><path d="M2 14h4"></path><path d="M10 8h4"></path><path d="M18 16h4"></path></svg>
+                  Filters
+                </button>
+              </div>
+            </div>
+            <div class="status-line" id="status">${state.fallback ? "Static preview loaded. WEAO requires a service user agent for server-side live sync." : `${items.length} exploit${items.length === 1 ? "" : "s"} visible.`}</div>
+            <div class="list">${firstItems.map(itemTemplate).join("")}</div>
+          </section>
+          ${grouped.map(([key, group]) => {
+            const [category, platform] = key.split(":");
+            return `
+              <section class="section">
+                <div class="section-head">
+                  <h2>${escapeHtml(sectionTitle(category, platform))}</h2>
+                </div>
+                <div class="list">${group.map(itemTemplate).join("")}</div>
+              </section>
+            `;
+          }).join("")}
+        `;
+
+        document.querySelector("#search").addEventListener("input", handleSearch);
+      }
+
+      function handleSearch(event) {
+        state.query = event.target.value.trim().toLowerCase();
+        render();
+        const nextSearch = document.querySelector("#search");
+        nextSearch.focus();
+        nextSearch.setSelectionRange(nextSearch.value.length, nextSearch.value.length);
+      }
+
+      function escapeAttribute(value) {
+        return escapeHtml(value).replace(/`/g, "&#096;");
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#039;"
+        }[char]));
+      }
+
+      search.addEventListener("input", handleSearch);
+      refresh.addEventListener("click", loadExecutors);
+      loadExecutors();
+    </script>
+  </body>
+</html>
