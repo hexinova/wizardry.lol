@@ -10,7 +10,6 @@
         color-scheme: light;
         font-family: "IBM Plex Mono", monospace;
       }
-
       body {
         margin: 0;
         min-height: 100vh;
@@ -19,23 +18,35 @@
         background: #f7f4ec;
         color: #141414;
       }
-
       main {
         width: min(720px, calc(100% - 48px));
       }
-
       h1 {
         margin: 0 0 12px;
         font-size: clamp(2rem, 8vw, 5rem);
         font-weight: 600;
         line-height: 0.95;
       }
-
       p {
         margin: 0;
         max-width: 52ch;
         font-size: 1rem;
         line-height: 1.7;
+      }
+      a.discord {
+        display: inline-block;
+        margin-top: 24px;
+        padding: 10px 20px;
+        border: 1.5px solid #141414;
+        color: #141414;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-family: "IBM Plex Mono", monospace;
+        transition: background 0.15s, color 0.15s;
+      }
+      a.discord:hover {
+        background: #141414;
+        color: #f7f4ec;
       }
     </style>
   </head>
@@ -43,6 +54,7 @@
     <main>
       <h1>Wizardry</h1>
       <p>Wizardry releases June 12th.</p>
+      <a class="discord" href="https://discord.gg/pTKuVPnqE3" target="_blank">Join the Discord →</a>
     </main>
   </body>
 </html>
